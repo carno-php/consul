@@ -14,6 +14,7 @@ use Carno\Consul\Types\Agent;
 use Carno\DNS\DNS;
 use Carno\DNS\Result;
 use Carno\HTTP\Client;
+use Carno\HTTP\Contracts\Client as HTTP;
 use Carno\HTTP\Options;
 use Carno\HTTP\Standard\Request;
 use Carno\HTTP\Standard\Response;
@@ -120,9 +121,9 @@ abstract class AbstractGate
 
     /**
      * @param Agent $agent
-     * @return Client
+     * @return HTTP
      */
-    final private function http(Agent $agent) : Client
+    final private function http(Agent $agent) : HTTP
     {
         return
             $this->http[$agent->host()] ??

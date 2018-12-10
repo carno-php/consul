@@ -15,6 +15,14 @@
       "Carno\\Consul\\": "src"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Carno\\Consul\\Tests\\": "tests"
+    },
+    "files": [
+      "tests/prepare.php"
+    ]
+  },
   "minimum-stability": "dev",
   "extra": {
     "branch-alias": {

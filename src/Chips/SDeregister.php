@@ -10,8 +10,6 @@ namespace Carno\Consul\Chips;
 
 use Carno\Consul\APIs\AgentServiceDeregister;
 use Carno\Consul\Contracts\Defaults;
-use Carno\Consul\Results\Failed;
-use Carno\Consul\Results\Success;
 use Carno\Consul\Types\Result;
 use Carno\Consul\Types\Service;
 use function Carno\Coroutine\async;
@@ -22,7 +20,7 @@ use Throwable;
 trait SDeregister
 {
     /**
-     * @return Promised|Result
+     * @return Promised
      */
     public function deregister() : Promised
     {
@@ -30,17 +28,28 @@ trait SDeregister
             for (;;) {
                 if (!$service->connected()) {
                     logger('consul')->info('Service has not been registered .. skip', ['svc' => $service->id()]);
-                    return new Failed('Skipped');
+                    return;
                 }
 
+                /**
+                 * @var Result $result
+                 */
+
                 try {
-                    return yield (new AgentServiceDeregister($service->hosting()))->service($service)->result();
+                    $result = yield (new AgentServiceDeregister($service->hosting()))->service($service)->result();
                 } catch (Throwable $e) {
                     logger('consul')->warning('Service deregistering error', [
                         'svc' => $service->id(),
                         'error' => sprintf('%s::%s', get_class($e), $e->getMessage()),
                     ]);
+                    goto RETRYING;
                 }
+
+                if ($result->success()) {
+                    return;
+                }
+
+                RETRYING:
 
                 yield msleep($sleep = rand(Defaults::ERROR_RETRY_MIN, Defaults::ERROR_RETRY_MAX));
 
@@ -58,9 +67,7 @@ trait SDeregister
      */
     public function deregistered(Result $result) : Result
     {
-        if ($result instanceof Success) {
-            $this->kaShutdown();
-        }
+        $this->kaShutdown();
 
         return $result;
     }

@@ -19,13 +19,31 @@ trait SEndpoints
     private $endpoints = [];
 
     /**
-     * @param Endpoint ...$eps
-     * @return self
+     * @return Endpoint
      */
-    public function setEndpoints(Endpoint ...$eps) : self
+    public function endpoint() : Endpoint
     {
-        $this->endpoints = $eps;
-        return $this;
+        if (is_null($endpoint = $this->endpoints[0] ?? null)) {
+            throw new NoneEndpointException;
+        } else {
+            return $endpoint;
+        }
+    }
+
+    /**
+     * @return Endpoint|null
+     */
+    public function getEndpoint() : ?Endpoint
+    {
+        return $this->endpoints[array_rand($this->endpoints)] ?? null;
+    }
+
+    /**
+     * @return Endpoint[]
+     */
+    public function getEndpoints() : array
+    {
+        return $this->endpoints;
     }
 
     /**
@@ -39,32 +57,12 @@ trait SEndpoints
     }
 
     /**
-     * get first available endpoint
-     * @return Endpoint
+     * @param Endpoint ...$eps
+     * @return self
      */
-    public function getEndpoint() : ?Endpoint
+    public function setEndpoints(Endpoint ...$eps) : self
     {
-        return $this->endpoints[0] ?? null;
-    }
-
-    /**
-     * @return Endpoint[]
-     */
-    public function getEndpoints() : array
-    {
-        return $this->endpoints;
-    }
-
-    /**
-     * similar with getEndpoint but will trigger exception if none
-     * @return Endpoint
-     */
-    public function endpoint() : Endpoint
-    {
-        if (is_null($endpoint = $this->getEndpoint())) {
-            throw new NoneEndpointException;
-        } else {
-            return $endpoint;
-        }
+        $this->endpoints = $eps;
+        return $this;
     }
 }

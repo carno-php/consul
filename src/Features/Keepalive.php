@@ -10,11 +10,15 @@ namespace Carno\Consul\Features;
 
 use Carno\Consul\APIs\AgentCheckUpdater;
 use Carno\Consul\APIs\AgentServiceRegister;
+use Carno\Consul\Contracts\Defaults;
 use Carno\Consul\Results\Failed;
 use Carno\Consul\Types\Result;
 use Carno\Consul\Types\Service;
+use function Carno\Coroutine\co;
 use function Carno\Coroutine\go;
+use function Carno\Coroutine\msleep;
 use Carno\Timer\Timer;
+use Generator;
 use Throwable;
 
 class Keepalive
@@ -52,9 +56,9 @@ class Keepalive
      */
     private function start(int $heartbeat) : void
     {
-        $this->daemon = Timer::loop($heartbeat * 1000, function () {
-            go($this->updating());
-        });
+        $this->daemon = Timer::loop($heartbeat * 1000, co(function () {
+            yield $this->updating();
+        }));
 
         logger('consul')->info(
             'Agent check updater started',
@@ -74,6 +78,7 @@ class Keepalive
     }
 
     /**
+     * @return Generator|void
      */
     private function updating()
     {
@@ -102,11 +107,14 @@ class Keepalive
                 ['id' => $this->identify, 'agent' => $this->service->hosting(), 'reason' => $krr->reason()]
             );
 
-            go($this->recovering());
+            yield msleep($sleep = rand(Defaults::ERROR_RETRY_MIN, Defaults::ERROR_RETRY_MAX));
+
+            yield $this->recovering();
         }
     }
 
     /**
+     * @return Generator|void
      */
     private function recovering()
     {

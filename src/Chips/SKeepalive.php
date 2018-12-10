@@ -56,6 +56,9 @@ trait SKeepalive
      */
     protected function kaShutdown() : void
     {
-        $this->daemon && $this->daemon->shutdown();
+        if ($this->daemon) {
+            $this->daemon->shutdown();
+            $this->daemon = null;
+        }
     }
 }

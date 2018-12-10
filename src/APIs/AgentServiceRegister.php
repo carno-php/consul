@@ -37,7 +37,7 @@ class AgentServiceRegister extends AbstractGate
     {
         $this->service = $service;
 
-        $endpoint = $service->getEndpoint();
+        $endpoint = $service->endpoint();
 
         $this->setPayload([
             'ID' => $service->id(),

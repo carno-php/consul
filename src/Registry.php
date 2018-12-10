@@ -47,10 +47,11 @@ class Registry
         ;
 
         async(static function (Agent $agent, Service $service) {
-            /**
-             * @var Result $registered
-             */
             for (;;) {
+                /**
+                 * @var Result $registered
+                 */
+
                 try {
                     $registered = yield (new AgentServiceRegister($agent))->service($service)->result();
                 } catch (Throwable $e) {
@@ -62,7 +63,7 @@ class Registry
                 }
 
                 if ($registered->success()) {
-                    break;
+                    return;
                 }
 
                 logger('consul')->info('Service registering failed', [
